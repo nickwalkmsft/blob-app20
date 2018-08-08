@@ -14,19 +14,6 @@ namespace blobapp20.Helpers
 {
     public static class StorageHelper
     {
-
-        public static bool IsImage(IFormFile file)
-        {
-            if (file.ContentType.Contains("image"))
-            {
-                return true;
-            }
-
-            string[] formats = new string[] { ".jpg", ".png", ".gif", ".jpeg" };
-
-            return formats.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
-        }
-
         public static Task UploadFileToStorage(Stream fileStream, string fileName, AzureStorageConfig _storageConfig)
         {
             // TODO new comment
@@ -36,7 +23,7 @@ namespace blobapp20.Helpers
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             // Get reference to the blob container by passing the name by reading the value from the configuration (appsettings.json)
-            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ImageContainer);
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.FileContainer);
 
             // Get the reference to the block blob from the container
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
@@ -45,9 +32,9 @@ namespace blobapp20.Helpers
             return blockBlob.UploadFromStreamAsync(fileStream);
         }
 
-        public static async Task<List<string>> GetThumbNailUrls(AzureStorageConfig _storageConfig)
+        public static async Task<List<string>> GetFileUrls(AzureStorageConfig _storageConfig)
         {
-            List<string> thumbnailUrls = new List<string>();
+            List<string> fileUrls = new List<string>();
 
             // TODO new comment
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_storageConfig.ConnectionString);
@@ -56,10 +43,9 @@ namespace blobapp20.Helpers
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             // Get reference to the container
-            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ImageContainer);
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.FileContainer);
 
             BlobContinuationToken continuationToken = null;
-
             BlobResultSegment resultSegment = null;
 
             //Call ListBlobsSegmentedAsync and enumerate the result segment returned, while the continuation token is non-null.
@@ -70,16 +56,13 @@ namespace blobapp20.Helpers
                 //or by calling a different overload.
                 resultSegment = await container.ListBlobsSegmentedAsync("", true, BlobListingDetails.All, 10, continuationToken, null, null);
 
-                foreach (var blobItem in resultSegment.Results)
-                {
-                    thumbnailUrls.Add(blobItem.StorageUri.PrimaryUri.ToString());
-                }
+                fileUrls.AddRange(resultSegment.Results.Select(r => r.StorageUri.PrimaryUri.ToString()));
 
                 //Get the continuation token.
                 continuationToken = resultSegment.ContinuationToken;
             } while (continuationToken != null);
 
-            return await Task.FromResult(thumbnailUrls);
+            return await Task.FromResult(fileUrls);
         }
     }
 }

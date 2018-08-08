@@ -4,7 +4,6 @@
 
 <!-- Client side libs required  -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/css/blueimp-gallery.min.css" crossorigin="anonymous">
 
 <style>
     html {
@@ -17,12 +16,6 @@
 
     #gallery-note {
         font-size: smaller
-    }
-
-    .blueimp-gallery {
-        margin: 25px;
-        max-width: 150px;
-        padding-bottom: 150px;
     }
 
     .dropzone {
@@ -49,16 +42,16 @@
 
 <main>
     <div class="box header">
-        <h1><span id="page-title">Image Uploader</span></h1>
+        <h1><span id="page-title">File Uploader</span></h1>
     </div>
     
     <div class="box content">
         <hr>
-        <h2>Upload photos</h2>
+        <h2>Upload files</h2>
         <div>
-            <form action="/api/images"
+            <form action="/api/Files"
                  class="dropzone needsclick dz-clickable" 
-                 id="image-upload"
+                 id="file-upload"
                  method="post"
                  enctype="multipart/form">
 
@@ -68,111 +61,45 @@
                     </span>
                 </div>
             </form>
-            <form method="post" enctype="multipart/form-data" action="/api/images">
-                <div class="form-group">
-                    <div class="col-md-10">
-                        <p>Upload one or more files using this form:</p>
-                        <input type="file" name="files" multiple />
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-10">
-                        <input type="submit" value="Upload" />
-                    </div>
-                </div>
-            </form>
         </div>
-        <h2>Uploaded Images</h2>
-            <!-- <p><span id="gallery-note">Gallery refreshes from storage container image links every 5 seconds.</span></p> -->
-            <div id="stored-images"></div>
-
-            <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
-            <div id="blueimp-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
-                <div class="slides"></div>
-                <h3 class="title"></h3>
-                <a class="prev">‹</a>
-                <a class="next">›</a>
-                <a class="play-pause"></a>
-                <ol class="indicator"></ol>
-            </div>
-        </div>
-    </div>
-    <div class="box footer">
-        <hr>
-        <div class="privacy">
-            <p>This app has no official privacy policy. Your data will be uploaded to a service in order produce a picture.
-                Your images will be public once you upload them and there is no automated way to remove them.</p>
+        <h2>Uploaded files</h2>
+            <ul id="fileList"></ul>
         </div>
     </div>
 </main>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
 <script>
-    // init gallery for later use
-    var gallery;
 
-    // Grab links for images from backend api
-    function fetchImageLinks() {
-        // Fetch images
-        $.get("api/Images", function(fetchedImageLinks) {
-            console.log(fetchedImageLinks)
+    // Grab links for files from backend api
+    function fetchLinks() {
+        // Fetch links
+        $.get("api/Files", function(fetchedLinks) {
 
-            // Check if anything is in there
-            if ( _.isEmpty(fetchedImageLinks) ){
-                console.log('empty fetched')
-                // do nothing  
-            } else {
-                // Check if we have a gallery initialized
-                if ( _.isEmpty(gallery) ) {
-                    // initialize gallery
-                    gallery = blueimp.Gallery(
-                                fetchedImageLinks, // gallery links array
-                                {
-                                    container: '#blueimp-gallery-carousel',
-                                    carousel: true
-                                } // gallery options
-                            );                    
-                } else {
-                    // check if images are equal to array
-                    console.log('currently in gallery:')
-                    console.log(gallery.list)
-                    var imageLinksEqual = _.isEqual(_.sortBy(gallery.list.map(s => s.split("?")[0])), _.sortBy(fetchedImageLinks.map(s => s.split("?")[0])))
-                    if ( imageLinksEqual ) {
-                        console.log('images arr are equal')
-                        // do nothing
-                    } else {
-                        console.log('images arr are not equal')
+            var newList = $('<ul id="fileList" />')
 
-                        // update gallery with new image urls. Only compare actual url without SAS token query string
-                        var newImageLinks = _.difference(fetchedImageLinks.map(s => s.split("?")[0]), gallery.list.map(s => s.split("?")[0]))
+            $.each(fetchedLinks, function(index, value) {
+                var li = $('<li/>').appendTo(fileList)
+                $('<a/>').attr('href', value).text(value.split('/').pop()).appendTo(li)
+                newList.append(li)
+            })
 
-                        console.log('differene is: ')
-                        console.log(newImageLinks)
-                        // Only add new images
-                        gallery.add(newImageLinks);
-
-                        // Force image load
-                        gallery.next();
-                    }
-                }       
-            }     
+            $('#fileList').replaceWith(newList)
         });
     }
 
     // Start first interval
-    fetchImageLinks()
+    fetchLinks()
     
     setInterval(function() {
-        fetchImageLinks()
+        fetchLinks()
     }, 5000) 
 
     /* Dropzone */
-    // "imageUpload" is the camelized version of the HTML element's ID
-    Dropzone.options.imageUpload = {
+    // "fileUpload" is the camelized version of the HTML element's ID
+    Dropzone.options.fileUpload = {
         paramName: "file", // The name that will be used to transfer the file
         dictDefaultMessage: "Drop files here or click to upload",
         addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
@@ -181,6 +108,7 @@
             myDropzone.on("success", function(file, response) {
                 console.log("Success");
                 myDropzone.removeFile(file);
+                fetchLinks();
             });                    
         }
     };
