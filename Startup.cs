@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using blobapp20.Models;
-using blobapp20.Helpers;
+using FileUploader.Models;
+using FileUploader.Helpers;
 
-namespace blobapp20
+namespace FileUploader
 {
     public class Startup
     {

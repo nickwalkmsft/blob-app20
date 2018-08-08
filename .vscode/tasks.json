@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/blob-app20.csproj"
+                "${workspaceFolder}/FileUploader.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

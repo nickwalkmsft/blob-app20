@@ -1,13 +1,13 @@
-using blobapp20.Models;
-using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using FileUploader.Models;
 
-namespace blobapp20.Helpers
+namespace FileUploader.Helpers
 {
     public class BlobStorageHelper : IStorageHelper
     {

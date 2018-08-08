@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace blobapp20.Controllers
+namespace FileUploader.Controllers
 {
     public class HomeController : Controller
     {
