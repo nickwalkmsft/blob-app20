@@ -2,107 +2,173 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="6000">
-    <ol class="carousel-indicators">
-        <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
-        <li data-target="#myCarousel" data-slide-to="1"></li>
-        <li data-target="#myCarousel" data-slide-to="2"></li>
-        <li data-target="#myCarousel" data-slide-to="3"></li>
-    </ol>
-    <div class="carousel-inner" role="listbox">
-        <div class="item active">
-            <img src="~/images/banner1.svg" alt="ASP.NET" class="img-responsive" />
-            <div class="carousel-caption" role="option">
-                <p>
-                    Learn how to build ASP.NET apps that can run anywhere.
-                    <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkID=525028&clcid=0x409">
-                        Learn More
-                    </a>
-                </p>
-            </div>
-        </div>
-        <div class="item">
-            <img src="~/images/banner2.svg" alt="Visual Studio" class="img-responsive" />
-            <div class="carousel-caption" role="option">
-                <p>
-                    There are powerful new features in Visual Studio for building modern web apps.
-                    <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkID=525030&clcid=0x409">
-                        Learn More
-                    </a>
-                </p>
-            </div>
-        </div>
-        <div class="item">
-            <img src="~/images/banner3.svg" alt="Package Management" class="img-responsive" />
-            <div class="carousel-caption" role="option">
-                <p>
-                    Bring in libraries from NuGet, Bower, and npm, and automate tasks using Grunt or Gulp.
-                    <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkID=525029&clcid=0x409">
-                        Learn More
-                    </a>
-                </p>
-            </div>
-        </div>
-        <div class="item">
-            <img src="~/images/banner4.svg" alt="Microsoft Azure" class="img-responsive" />
-            <div class="carousel-caption" role="option">
-                <p>
-                    Learn how Microsoft's Azure cloud platform allows you to build, deploy, and scale web apps.
-                    <a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkID=525027&clcid=0x409">
-                        Learn More
-                    </a>
-                </p>
-            </div>
-        </div>
-    </div>
-    <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
-        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-        <span class="sr-only">Previous</span>
-    </a>
-    <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
-        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-        <span class="sr-only">Next</span>
-    </a>
-</div>
+<!-- Client side libs required  -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/css/blueimp-gallery.min.css" crossorigin="anonymous">
 
-<div class="row">
-    <div class="col-md-3">
-        <h2>Application uses</h2>
-        <ul>
-            <li>Sample pages using ASP.NET Core MVC</li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=518004">Bower</a> for managing client-side libraries</li>
-            <li>Theming using <a href="https://go.microsoft.com/fwlink/?LinkID=398939">Bootstrap</a></li>
-        </ul>
+<style>
+    html {
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+
+    main {
+        margin: 20px;
+    }
+
+    #gallery-note {
+        font-size: smaller
+    }
+
+    .blueimp-gallery {
+        margin: 25px;
+        max-width: 150px;
+        padding-bottom: 150px;
+    }
+
+    .dropzone {
+        border: 3px dashed #00a1f1;
+        background: #F0F8FF;
+        margin: 25px;
+        border-radius: 5px;
+        max-width: 400px;
+    }
+
+    .dropzone .dz-message {
+        font-weight: 350;
+    }
+
+    .dropzone .dz-message .note {
+        font-family: sans-serif;
+        font-size: 18px;
+        font-weight: 200;
+        display: block;
+        margin-top 1.5rem;
+    }
+</style>
+
+
+<main>
+    <div class="box header">
+        <h1><span class="fa fa-user-circle-o"></span> <span id="page-title">ImageResizer</span></h1>
     </div>
-    <div class="col-md-3">
-        <h2>How to</h2>
-        <ul>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=398600">Add a Controller and View</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699315">Manage User Secrets using Secret Manager.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699316">Use logging to log a message.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699317">Add packages using NuGet.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699318">Add client packages using Bower.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699319">Target development, staging or production environment.</a></li>
-        </ul>
+    
+    <div class="box content">
+        <hr>
+        <h2>Upload photos</h2>
+        <div>
+            <form action="/api/images/upload"
+                 class="dropzone needsclick dz-clickable" 
+                 id="image-upload"
+                 method="post"
+                 enctype="multipart/form">
+
+                <div class="dz-message needsclick">
+                    <span class="note needsclick">
+                        Drop files here or click to upload.
+                    </span>
+                </div>
+            </form>
+        </div>
+        <h2>Generated Thumbnails</h2>
+            <!-- <p><span id="gallery-note">Gallery refreshes from storage container image links every 5 seconds.</span></p> -->
+            <div id="stored-images"></div>
+
+            <!-- The Gallery as inline carousel, can be positioned anywhere on the page -->
+            <div id="blueimp-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
+                <div class="slides"></div>
+                <h3 class="title"></h3>
+                <a class="prev">‹</a>
+                <a class="next">›</a>
+                <a class="play-pause"></a>
+                <ol class="indicator"></ol>
+            </div>
+        </div>
     </div>
-    <div class="col-md-3">
-        <h2>Overview</h2>
-        <ul>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=518008">Conceptual overview of what is ASP.NET Core</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=699320">Fundamentals of ASP.NET Core such as Startup and middleware.</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=398602">Working with Data</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkId=398603">Security</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=699321">Client side development</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=699322">Develop on different platforms</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=699323">Read more on the documentation site</a></li>
-        </ul>
+    <div class="box footer">
+        <hr>
+        <div class="privacy">
+            <p>This app has no official privacy policy. Your data will be uploaded to a service in order produce a picture.
+                Your images will be public once you upload them and there is no automated way to remove them.</p>
+        </div>
     </div>
-    <div class="col-md-3">
-        <h2>Run &amp; Deploy</h2>
-        <ul>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=517851">Run your app</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=517853">Run tools such as EF migrations and more</a></li>
-            <li><a href="https://go.microsoft.com/fwlink/?LinkID=398609">Publish to Microsoft Azure Web Apps</a></li>
-        </ul>
-    </div>
-</div>
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.1.1/min/dropzone.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-gallery/2.25.2/js/blueimp-gallery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+<script>
+    // init gallery for later use
+    var gallery;
+
+    // Grab links for images from backend api
+    function fetchImageLinks() {
+        // Fetch images
+        $.get("api/Images/thumbnails", function(fetchedImageLinks) {
+            console.log(fetchedImageLinks)
+
+            // Check if anything is in there
+            if ( _.isEmpty(fetchedImageLinks) ){
+                console.log('empty fetched')
+                // do nothing  
+            } else {
+                // Check if we have a gallery initialized
+                if ( _.isEmpty(gallery) ) {
+                    // initialize gallery
+                    gallery = blueimp.Gallery(
+                                fetchedImageLinks, // gallery links array
+                                {
+                                    container: '#blueimp-gallery-carousel',
+                                    carousel: true
+                                } // gallery options
+                            );                    
+                } else {
+                    // check if images are equal to array
+                    console.log('currently in gallery:')
+                    console.log(gallery.list)
+                    var imageLinksEqual = _.isEqual(_.sortBy(gallery.list.map(s => s.split("?")[0])), _.sortBy(fetchedImageLinks.map(s => s.split("?")[0])))
+                    if ( imageLinksEqual ) {
+                        console.log('images arr are equal')
+                        // do nothing
+                    } else {
+                        console.log('images arr are not equal')
+
+                        // update gallery with new image urls. Only compare actual url without SAS token query string
+                        var newImageLinks = _.difference(fetchedImageLinks.map(s => s.split("?")[0]), gallery.list.map(s => s.split("?")[0]))
+
+                        console.log('differene is: ')
+                        console.log(newImageLinks)
+                        // Only add new images
+                        gallery.add(newImageLinks);
+
+                        // Force image load
+                        gallery.next();
+                    }
+                }       
+            }     
+        });
+    }
+
+    // Start first interval
+    fetchImageLinks()
+    
+    setInterval(function() {
+        fetchImageLinks()
+    }, 5000) 
+
+    /* Dropzone */
+    // "imageUpload" is the camelized version of the HTML element's ID
+    Dropzone.options.imageUpload = {
+        paramName: "files", // The name that will be used to transfer the file
+        dictDefaultMessage: "Drop files here or Click to Upload",
+        addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
+        init: function() {
+            myDropzone = this;
+            myDropzone.on("success", function(file, response) {
+                console.log("Success");
+                myDropzone.removeFile(file);
+            });                    
+        }
+    };
+</script>

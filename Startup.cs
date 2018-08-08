@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using blobapp20.Models;
 
-namespace blob_app20
+namespace blobapp20
 {
     public class Startup
     {
@@ -21,6 +22,8 @@ namespace blob_app20
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOptions();
+            services.Configure<AzureStorageConfig>(Configuration.GetSection("AzureStorageConfig"));
             services.AddMvc();
         }
 
