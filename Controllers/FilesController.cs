@@ -1,75 +1,51 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using blobapp20.Models;
-using Microsoft.Extensions.Options;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using blobapp20.Helpers;
-using System.Linq;
+using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace blobapp20.Controllers
 {
     [Route("api/[controller]")]
     public class FilesController : Controller
     {
-        // make sure that appsettings.json is filled with the necessary details of the azure storage
-        private readonly AzureStorageConfig storageConfig = null;
+        private readonly IStorageHelper storageHelper;
 
-        public FilesController(IOptions<AzureStorageConfig> config)
+        public FilesController(IStorageHelper storageHelper)
         {
-            storageConfig = config.Value;
+            this.storageHelper = storageHelper;
         }
 
         // GET /api/Files
         [HttpGet()]
         public async Task<IActionResult> Index()
         {
-            try
-            {
-                // TODO put this in startup
-                // if (storageConfig.ConnectionString == string.Empty)
-
-                //     return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js, make sure that you add azure storage details there");
-
-                // if (storageConfig.ImageContainer == string.Empty)
-
-                //     return BadRequest("Please provide a name for your image container in the azure blob storage");
-
-                List<string> fileUrls = await StorageHelper.GetFileUrls(storageConfig);
-
-                return new ObjectResult(fileUrls);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var baseUrl = Request.Path.Value;
+            List<string> fileUrls = await storageHelper.GetFileUrls(baseUrl);
+            return Ok(fileUrls);            
         }
 
         // POST /api/Files
         [HttpPost()]
         public async Task<IActionResult> Upload(IFormFile file)
         {
-            try
+            using (Stream stream = file.OpenReadStream())
             {
-                // TODO put this in startup
-                // if (storageConfig.ConnectionString == string.Empty)
-                //     return BadRequest("sorry, can't retrieve your azure storage details from appsettings.js, make sure that you add azure storage details there");
-                // if (storageConfig.ImageContainer == string.Empty)
-                //     return BadRequest("Please provide a name for your image container in the azure blob storage");
+                await storageHelper.UploadFileToStorage(stream, file.FileName);
+            }
+            
+            return Accepted();
+        }
 
-                using (Stream stream = file.OpenReadStream())
-                {
-                    await StorageHelper.UploadFileToStorage(stream, file.FileName, storageConfig);
-                }
-                
-                return new AcceptedResult();  
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+        // GET /api/Files/{filename}
+        [HttpGet("{filename}")]
+        public async Task<IActionResult> GetFile(string filename)
+        {
+            var stream = await storageHelper.GetFile(filename);
+            return File(stream, "application/octet-stream", filename);
         }
     }
 }

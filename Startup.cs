@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using blobapp20.Models;
+using blobapp20.Helpers;
 
 namespace blobapp20
 {
@@ -24,6 +25,7 @@ namespace blobapp20
         {
             services.AddOptions();
             services.Configure<AzureStorageConfig>(Configuration.GetSection("AzureStorageConfig"));
+            services.AddSingleton<IStorageHelper, BlobStorageHelper>();
             services.AddMvc();
         }
 
