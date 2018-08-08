@@ -49,7 +49,7 @@
 
 <main>
     <div class="box header">
-        <h1><span class="fa fa-user-circle-o"></span> <span id="page-title">ImageResizer</span></h1>
+        <h1><span id="page-title">Image Uploader</span></h1>
     </div>
     
     <div class="box content">
@@ -66,6 +66,19 @@
                     <span class="note needsclick">
                         Drop files here or click to upload.
                     </span>
+                </div>
+            </form>
+            <form method="post" enctype="multipart/form-data" action="/api/images">
+                <div class="form-group">
+                    <div class="col-md-10">
+                        <p>Upload one or more files using this form:</p>
+                        <input type="file" name="files" multiple />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-10">
+                        <input type="submit" value="Upload" />
+                    </div>
                 </div>
             </form>
         </div>
@@ -160,9 +173,8 @@
     /* Dropzone */
     // "imageUpload" is the camelized version of the HTML element's ID
     Dropzone.options.imageUpload = {
-        maxFiles: 1,
-        paramName: "files", // The name that will be used to transfer the file
-        dictDefaultMessage: "Drop files here or Click to Upload",
+        paramName: "file", // The name that will be used to transfer the file
+        dictDefaultMessage: "Drop files here or click to upload",
         addRemoveLinks: true, // Allows for cancellation of file upload and remove thumbnail
         init: function() {
             myDropzone = this;
