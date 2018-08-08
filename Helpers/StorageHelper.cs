@@ -27,7 +27,7 @@ namespace blobapp20.Helpers
             return formats.Any(item => file.FileName.EndsWith(item, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static async Task<bool> UploadFileToStorage(Stream fileStream, string fileName, AzureStorageConfig _storageConfig)
+        public static Task UploadFileToStorage(Stream fileStream, string fileName, AzureStorageConfig _storageConfig)
         {
             // TODO new comment
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_storageConfig.ConnectionString);
@@ -42,9 +42,7 @@ namespace blobapp20.Helpers
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 
             // Upload the file
-            await blockBlob.UploadFromStreamAsync(fileStream);
-
-            return await Task.FromResult(true);
+            return blockBlob.UploadFromStreamAsync(fileStream);
         }
 
         public static async Task<List<string>> GetThumbNailUrls(AzureStorageConfig _storageConfig)
@@ -79,9 +77,7 @@ namespace blobapp20.Helpers
 
                 //Get the continuation token.
                 continuationToken = resultSegment.ContinuationToken;
-            }
-
-            while (continuationToken != null);
+            } while (continuationToken != null);
 
             return await Task.FromResult(thumbnailUrls);
         }
