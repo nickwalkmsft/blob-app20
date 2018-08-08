@@ -20,6 +20,8 @@ namespace FileUploader.Controllers
         }
 
         // GET /api/Files
+        // Called when the page is first loaded, whenever new files are uploaded, and every
+        // five seconds on a timer.
         [HttpGet()]
         public async Task<IActionResult> Index()
         {
@@ -29,6 +31,7 @@ namespace FileUploader.Controllers
         }
 
         // POST /api/Files
+        // Called once for each file uploaded.
         [HttpPost()]
         public async Task<IActionResult> Upload(IFormFile file)
         {
@@ -41,6 +44,7 @@ namespace FileUploader.Controllers
         }
 
         // GET /api/Files/{filename}
+        // Called when clicking a link to download a specific file.
         [HttpGet("{filename}")]
         public async Task<IActionResult> GetFile(string filename)
         {
