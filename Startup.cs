@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FileUploader.Models;
-using FileUploader.Helpers;
+using Microsoft.Extensions.Options;
 
 namespace FileUploader
 {
@@ -20,16 +20,19 @@ namespace FileUploader
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
             services.Configure<AzureStorageConfig>(Configuration.GetSection("AzureStorageConfig"));
-            services.AddSingleton<IStorageHelper, BlobStorageHelper>();
+            services.AddSingleton<IStorage>(serviceProvider => {
+                var config = serviceProvider.GetService<IOptions<AzureStorageConfig>>();
+                var blobStorage = new BlobStorage(config);
+                blobStorage.Initialize().GetAwaiter().GetResult();
+                return blobStorage;
+            });
             services.AddMvc();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())

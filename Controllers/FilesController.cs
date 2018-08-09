@@ -1,32 +1,32 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using FileUploader.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
-using FileUploader.Helpers;
 
 namespace FileUploader.Controllers
 {
     [Route("api/[controller]")]
     public class FilesController : Controller
     {
-        private readonly IStorageHelper storageHelper;
+        private readonly IStorage storage;
 
-        public FilesController(IStorageHelper storageHelper)
+        public FilesController(IStorage storage)
         {
-            this.storageHelper = storageHelper;
+            this.storage = storage;
         }
 
         // GET /api/Files
-        // Called when the page is first loaded, whenever new files are uploaded, and every
+        // Called by the page when it's first loaded, whenever new files are uploaded, and every
         // five seconds on a timer.
         [HttpGet()]
         public async Task<IActionResult> Index()
         {
             var baseUrl = Request.Path.Value;
-            List<string> fileUrls = await storageHelper.GetFileUrls(baseUrl);
+            var fileUrls = await storage.GetFileUrls(baseUrl);
             return Ok(fileUrls);            
         }
 
@@ -37,7 +37,7 @@ namespace FileUploader.Controllers
         {
             using (Stream stream = file.OpenReadStream())
             {
-                await storageHelper.UploadFileToStorage(stream, file.FileName);
+                await storage.Save(stream, file.FileName);
             }
             
             return Accepted();
@@ -46,9 +46,9 @@ namespace FileUploader.Controllers
         // GET /api/Files/{filename}
         // Called when clicking a link to download a specific file.
         [HttpGet("{filename}")]
-        public async Task<IActionResult> GetFile(string filename)
+        public async Task<IActionResult> Download(string filename)
         {
-            var stream = await storageHelper.GetFile(filename);
+            var stream = await storage.GetFile(filename);
             return File(stream, "application/octet-stream", filename);
         }
     }
