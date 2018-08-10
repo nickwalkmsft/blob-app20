@@ -25,17 +25,15 @@ namespace FileUploader.Models
             return container.CreateIfNotExistsAsync();
         }
 
-        public Task Save(Stream fileStream, string fileName)
+        public Task Save(Stream fileStream, string name)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference(storageConfig.FileContainerName);
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(name);
             return blockBlob.UploadFromStreamAsync(fileStream);
-            // TODO filename as metadata, store with a guid
         }
 
-        // TODO Rename to something more appropriate and return pairs of (url, filename)
         public async Task<IEnumerable<string>> GetNames()
         {
             List<string> names = new List<string>();
@@ -49,15 +47,13 @@ namespace FileUploader.Models
 
             do
             {
-                resultSegment = await container.ListBlobsSegmentedAsync(
-                    prefix: "",
-                    useFlatBlobListing: true,
-                    blobListingDetails: BlobListingDetails.All,
-                    maxResults: null,
-                    currentToken: continuationToken,
-                    options: null,
-                    operationContext: null);
+                resultSegment = await container.ListBlobsSegmentedAsync(continuationToken);
 
+                // Get the name of each blob.
+                // OfType<ICloudBlob> is required because Results contains items of type IListBlobItem,
+                // which does not have a Name property. This is because some result items may
+                // be CloudBlobDirectory objects, used to represent virtual directories of
+                // blobs. Our app will never have these, so every result is an ICloudBlob anyway.
                 names.AddRange(resultSegment.Results.OfType<ICloudBlob>().Select(b => b.Name));
 
                 continuationToken = resultSegment.ContinuationToken;
@@ -66,14 +62,13 @@ namespace FileUploader.Models
             return names;
         }
 
-        // Use "id" instead of "name" (same for controller)
-        public Task<Stream> Load(string filename)
+        public Task<Stream> Load(string name)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference(storageConfig.FileContainerName);
-
-            return container.GetBlobReference(filename).OpenReadAsync();
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(name);
+            return blockBlob.OpenReadAsync();
         }
     }
 }

@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FileUploader.Models;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +15,9 @@ namespace FileUploader.Controllers
     [Route("api/[controller]")]
     public class FilesController : Controller
     {
+        private const int MaxFilenameLength = 50;
+        private static readonly Regex filenameRegex = new Regex("[^a-zA-Z0-9._]");
+
         private readonly IStorage storage;
 
         public FilesController(IStorage storage)
@@ -40,9 +45,20 @@ namespace FileUploader.Controllers
         [HttpPost()]
         public async Task<IActionResult> Upload(IFormFile file)
         {
+            // IFormFile.FileName is untrustworthy user input, and we're
+            // using it for both blob names and for display on the page,
+            // so we aggressively sanitize. In a real app, we'd probably
+            // do something more complex and robust for handling filenames.
+            var name = SanitizeFilename(file.FileName);
+
+            if (String.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException();
+            }
+
             using (Stream stream = file.OpenReadStream())
             {
-                await storage.Save(stream, file.FileName);
+                await storage.Save(stream, name);
             }
             
             return Accepted();
@@ -55,6 +71,18 @@ namespace FileUploader.Controllers
         {
             var stream = await storage.Load(filename);
             return File(stream, "application/octet-stream", filename);
+        }
+
+        private static string SanitizeFilename(string filename)
+        {
+            var sanitizedFilename = filenameRegex.Replace(filename, "").TrimEnd('.');
+
+            if (sanitizedFilename.Length > MaxFilenameLength)
+            {
+                sanitizedFilename = sanitizedFilename.Substring(0, MaxFilenameLength);
+            }
+
+            return sanitizedFilename;
         }
     }
 }

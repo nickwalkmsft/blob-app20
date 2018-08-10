@@ -6,8 +6,8 @@ namespace FileUploader.Models
 {
     public interface IStorage
     {
-        Task Save(Stream fileStream, string fileName);
+        Task Save(Stream fileStream, string name);
         Task<IEnumerable<string>> GetNames();
-        Task<Stream> Load(string filename);
+        Task<Stream> Load(string name);
     }
 }
