@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using FileUploader.Models;
 using Microsoft.AspNetCore.Http;
@@ -25,9 +26,13 @@ namespace FileUploader.Controllers
         [HttpGet()]
         public async Task<IActionResult> Index()
         {
+            var names = await storage.GetNames();
+
             var baseUrl = Request.Path.Value;
-            var fileUrls = await storage.GetFileUrls(baseUrl);
-            return Ok(fileUrls);            
+
+            var urls = names.Select(n => $"{baseUrl}/{n}");
+
+            return Ok(urls);            
         }
 
         // POST /api/Files
@@ -48,7 +53,7 @@ namespace FileUploader.Controllers
         [HttpGet("{filename}")]
         public async Task<IActionResult> Download(string filename)
         {
-            var stream = await storage.GetFile(filename);
+            var stream = await storage.Load(filename);
             return File(stream, "application/octet-stream", filename);
         }
     }

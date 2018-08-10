@@ -10,36 +10,39 @@ namespace FileUploader.Models
 {
     public class BlobStorage : IStorage
     {
-        private readonly string containerName;
-        private readonly CloudStorageAccount storageAccount;
+        private readonly AzureStorageConfig storageConfig;
 
         public BlobStorage(IOptions<AzureStorageConfig> storageConfig)
         {
-            this.storageAccount = CloudStorageAccount.Parse(storageConfig.Value.ConnectionString);
-            this.containerName = storageConfig.Value.FileContainer;
+            this.storageConfig = storageConfig.Value;
         }
 
         public Task Initialize()
         {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+            CloudBlobContainer container = blobClient.GetContainerReference(storageConfig.FileContainerName);
             return container.CreateIfNotExistsAsync();
         }
 
         public Task Save(Stream fileStream, string fileName)
         {
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+            CloudBlobContainer container = blobClient.GetContainerReference(storageConfig.FileContainerName);
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
             return blockBlob.UploadFromStreamAsync(fileStream);
+            // TODO filename as metadata, store with a guid
         }
 
-        public async Task<IEnumerable<string>> GetFileUrls(string baseUrl)
+        // TODO Rename to something more appropriate and return pairs of (url, filename)
+        public async Task<IEnumerable<string>> GetNames()
         {
-            List<string> fileUrls = new List<string>();
+            List<string> names = new List<string>();
 
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+            CloudBlobContainer container = blobClient.GetContainerReference(storageConfig.FileContainerName);
 
             BlobContinuationToken continuationToken = null;
             BlobResultSegment resultSegment = null;
@@ -55,21 +58,20 @@ namespace FileUploader.Models
                     options: null,
                     operationContext: null);
 
-                fileUrls.AddRange(resultSegment.Results.Select(r => $"{baseUrl}/{r.Uri.Segments.Last()}"));
+                names.AddRange(resultSegment.Results.OfType<ICloudBlob>().Select(b => b.Name));
 
                 continuationToken = resultSegment.ContinuationToken;
             } while (continuationToken != null);
 
-            return fileUrls;
+            return names;
         }
 
-        public Task<Stream> GetFile(string filename)
+        // Use "id" instead of "name" (same for controller)
+        public Task<Stream> Load(string filename)
         {
-            // Create blob client
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            // Get reference to the container
-            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
+            CloudBlobContainer container = blobClient.GetContainerReference(storageConfig.FileContainerName);
 
             return container.GetBlobReference(filename).OpenReadAsync();
         }
