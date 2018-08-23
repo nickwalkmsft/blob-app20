@@ -70,6 +70,10 @@ namespace FileUploader.Controllers
         public async Task<IActionResult> Download(string filename)
         {
             var stream = await storage.Load(filename);
+
+            // This usage of File() always triggers the browser to perform a file download.
+            // We always use "application/octet-stream" as the content type because we don't record
+            // any information about content type from the user when they upload a file.
             return File(stream, "application/octet-stream", filename);
         }
 

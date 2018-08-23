@@ -29,7 +29,7 @@ namespace FileUploader.Models
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConfig.ConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference(storageConfig.FileContainerName);
+            CloudBlobContainer container = blobClient.GetContainerReference(storageConfig.FileContainerName);            
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(name);
             return blockBlob.UploadFromStreamAsync(fileStream);
         }
@@ -50,11 +50,7 @@ namespace FileUploader.Models
                 resultSegment = await container.ListBlobsSegmentedAsync(continuationToken);
 
                 // Get the name of each blob.
-                // OfType<ICloudBlob> is required because Results contains items of type IListBlobItem,
-                // which does not have a Name property. This is because some result items may
-                // be CloudBlobDirectory objects, used to represent virtual directories of
-                // blobs. Our app will never have these, so every result is an ICloudBlob anyway.
-                names.AddRange(resultSegment.Results.OfType<ICloudBlob>().Select(b => b.Name));
+                names.AddRange(resultSegment.Results.OfType<CloudBlockBlob>().Select(b => b.Name));
 
                 continuationToken = resultSegment.ContinuationToken;
             } while (continuationToken != null);
